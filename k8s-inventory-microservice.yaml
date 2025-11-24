@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: inventory-microservice-rs
+  labels:
+    app: inventory-microservice-rs
+spec:
+  # modify replicas according to your case
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "inventory-microservice"
+  template:
+    metadata:
+      labels:
+        app: "inventory-microservice"
+        env: "dev"
+        version: "v1"
+        tier: "backend"
+    spec:        
+     containers:
+      - name: "inventory-microservice"
+        image: "classpathio/inventory-microservice:latest"
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-microservice-svc
+spec:
+  selector:
+    app: inventory-microservice
+  type: ClusterIP
+  sessionAffinity: None
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 9222

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  order-microservice-dep
+  labels:
+    app:  order-microservice
+spec:
+  selector:
+    matchLabels:
+      app: order-microservice
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  order-microservice
+    spec:
+      containers:
+      - name:  order-microservice-container
+        image:  classpathio/order-microservice:1.0.0
+        ports:
+        - containerPort:  8080
+          name:  app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-microservice-svc
+spec:
+  selector:
+    app: order-microservice
+  type: ClusterIP
+  ports:
+  - name: MYAPP
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: application-ingress
+spec:
+  rules:
+  - host: pradeep.classpath.io
+    http:
+      paths:
+      - path: /orders
+        pathType: Prefix
+        backend:
+          service:
+            name: order-microservice-svc
+            port:
+              number: 80          
